@@ -16,8 +16,6 @@ jobs:
         with:
           distribution: temurin
           java-version: 8
-      - name: Grant permissions to src-theme
-        run: sudo chmod -R 777 src-theme
 
       - name: Setup and build
         uses: gradle/gradle-build-action@v2
