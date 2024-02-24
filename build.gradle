@@ -1,8 +1,8 @@
-version = "Dev Build"
+version = "Build"
 group = "PridePluscn.cf"
 
 subprojects {
-    version = "Dev Build"
+    version = "Build"
     group = "PridePluscn.cf"
 }
 
