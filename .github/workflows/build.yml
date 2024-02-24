@@ -17,12 +17,8 @@ jobs:
           distribution: temurin
           java-version: 8
 
-      - name: Setup and build
-        uses: gradle/gradle-build-action@v2
-        env:
-          CI: true
-        with:
-          arguments: genSources build
+      - name: build
+        run: chmod +x ./gradlew && ./gradlew setupCiWorkspace && ./gradlew build
       - name: Upload build artifacts
         uses: actions/upload-artifact@v2
         with:
