@@ -161,6 +161,16 @@ class NoSlow : Module() {
                     PacketUtils.sendTryUseItem()
                 }
             }
+            "grimtest" -> {
+                if (event.eventState == EventState.PRE) {
+                    mc.connection?.sendPacket(CPacketHeldItemChange(mc.player.inventory.currentItem))
+                    mc.connection?.sendPacket(CPacketPlayerTryUseItem(EnumHand.OFF_HAND))
+                    mc.connection?.sendPacket(CPacketHeldItemChange(mc.player.inventory.currentItem))
+                }
+                if (event.eventState == EventState.POST) {
+                    mc.connection?.sendPacket(CPacketPlayerTryUseItem(EnumHand.MAIN_HAND))
+                }
+            }
             "aac" -> {
                 if (mc.player!!.ticksExisted % 3 == 0) sendPacket(event, true, false, false, 0, false)
                 else sendPacket(event, false, true, false, 0, false)

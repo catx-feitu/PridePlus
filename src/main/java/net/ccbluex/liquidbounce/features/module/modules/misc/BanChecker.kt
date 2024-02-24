@@ -24,7 +24,7 @@ class BanChecker : Module(){
                 ban ++
                 val banname = matcher.group(1)
                 Pride.hud.addNotification(Notification("BanChecker","$banname was banned. (banned:$ban)",NotifyType.INFO, animeTime = 1000))
-                mc.player!!.sendChatMessage("@ $banname  主播你怎么ban了啊 这都ban了" + ban + "个人了 ")
+                mc.player!!.sendChatMessage("@ $banname  哇哇哇你怎么被封了啊 这都有" + ban + "个人受到禁令了 ")
             }
         }
     }
