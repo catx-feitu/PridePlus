@@ -55,7 +55,7 @@ object Pride {
 
     // Client information
     var CLIENT_NAME = "PridePlus"
-    const val CLIENT_VERSION = "NextGen2.0"
+    const val CLIENT_VERSION = "NextGen1.9"
     const val CLIENT_CREATOR = "WaWa"
     const val CLIENT_CLOUD = "https://cloud.liquidbounce.net/LiquidBounce"
 
