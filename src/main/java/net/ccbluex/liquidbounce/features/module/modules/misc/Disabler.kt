@@ -37,29 +37,19 @@ import kotlin.math.sqrt
 
 @ModuleInfo(name = "Disabler", description = "Disabler", category = ModuleCategory.MISC)
 class Disabler : Module() {
-    val post =BoolValue("Post",true)
-    private val AutoBlockFix = BoolValue("RotaionPlace",true)
-    //BadPacketA Dis 可以都开
-    val badpacketA= BoolValue("BadPacketA1",true)//第一种DisBadA的方式
-    private val badpacketa = BoolValue("BadPacketA2",true)//第二种DisBadA的方式
-    var lastSprinting = false
-    private val badpacketf = BoolValue("BadPacketF", false)
-    private val badpackett = BoolValue("BadPacketT",true)
-    private val fastBreak = BoolValue("FastBreak",true)
     val modeValue = ListValue("Mode", arrayOf("GrimAC"), "GrimAC")
-    private var lastSlot: Int = -1
-    private val hasLegacyExpansion: Boolean = true
-    private val maxXZ = 0.3001 + (if (hasLegacyExpansion) 0.1 else 0.0)
-    private val minY = -0.0001 - (if (hasLegacyExpansion) 0.1 else 0.0)
-    private val maxY = 1.8001 + (if (hasLegacyExpansion) 0.1 else 0.0)
-    private var blockPos: BlockPos? = null
-    private var enumFacing: EnumFacing? = null
+    val post = BoolValue("Post",true)
+    private val AutoBlockFix = BoolValue("RotaionPlace",true)
+    private val badpacketA = BoolValue("BadPacketA",true)
+    private val badpacketF = BoolValue("BadPacketF",true)
 
+    private var lastSprinting = false
+    private var lastSlot: Int = -1
 
     @EventTarget
     fun onPacket(event: PacketEvent){
         val packet = event.packet
-        val our = mc.player.heldItemMainhand.item is ItemFood || mc.player.heldItemMainhand.item is ItemPotion || mc.player.heldItemMainhand.item is ItemBucketMilk || mc.player.heldItemMainhand.item is ItemBow
+        val our = (mc.player.heldItemMainhand.item is ItemFood) || (mc.player.heldItemMainhand.item is ItemPotion) || (mc.player.heldItemMainhand.item is ItemBucketMilk) || (mc.player.heldItemMainhand.item is ItemBow)
         val killAura = Pride.moduleManager.getModule(KillAura::class.java) as KillAura
         if (packet is CPacketPlayerTryUseItemOnBlock && ( killAura.currentTarget != null || our) && AutoBlockFix.get()) {
             event.cancelEvent()
@@ -72,15 +62,7 @@ class Disabler : Module() {
             this.lastSlot = packet.slotId
 
         }
-        if(badpacketa.get() && mc.world != null) {
-            if(packet is CPacketHeldItemChange) {
-                if(packet.slotId == lastSlot) {
-                    event.cancelEvent()
-                }
-                lastSlot = packet.slotId
-            }
-        }
-        if (badpacketf.get()) {
+        if (badpacketF.get()) {
             //BadPacketF
             if (packet is CPacketEntityAction) {
                 if (packet.action === CPacketEntityAction.Action.START_SPRINTING) {
@@ -89,18 +71,6 @@ class Disabler : Module() {
                 } else if (packet.action === CPacketEntityAction.Action.STOP_SPRINTING) {
                     if (!lastSprinting) event.cancelEvent()
                     lastSprinting = false
-                }
-            }
-        }
-        if(badpackett.get() && mc.world != null) {
-            if(packet is CPacketUseEntity) {
-                if(packet.action == CPacketUseEntity.Action.INTERACT) {
-                    if(mc.player.heldItemMainhand.item is ItemSword) {
-                        val target = killAura.target!!
-                        if(target.posX > minY && target.posY < maxY && Math.abs(target.posX) < maxXZ && Math.abs(target.posZ) < maxXZ) {
-                            event.cancelEvent()
-                        }
-                    }
                 }
             }
         }
@@ -123,8 +93,8 @@ class Disabler : Module() {
         val disabler = Pride.moduleManager.getModule(Disabler::class.java) as Disabler
         val result = disabler.state && modeValue.get()=="GrimAC" && post.get()
                 && mc.player != null
-                && mc.player.isEntityAlive
-                && mc.player.ticksExisted >= 10
+                && mc.player!!.isEntityAlive
+                && mc.player!!.ticksExisted >= 10
                 && mc.currentScreen !is GuiDownloadTerrain
 
         if (lastResult && !result) {
@@ -209,7 +179,7 @@ class Disabler : Module() {
         }
         if (packet is SPacketEntityVelocity) {
             val sPacketEntityVelocity: SPacketEntityVelocity = packet
-            return sPacketEntityVelocity.entityID == mc.player.entityId
+            return sPacketEntityVelocity.entityID == mc.player!!.entityId
         }
         return packet is SPacketExplosion
                 || packet is SPacketConfirmTransaction
@@ -239,20 +209,6 @@ class Disabler : Module() {
                     break
                 }
             } while (!pingPackets.isEmpty())
-        }
-    }
-    @EventTarget
-    fun onClickBlock(event: ClickBlockEvent) {
-        blockPos = event.clickedBlock ?: return
-        enumFacing = event.WEnumFacing ?: return
-        if (fastBreak.get()) {
-            mc.connection?.sendPacket(
-                CPacketPlayerDigging(
-                    CPacketPlayerDigging.Action.ABORT_DESTROY_BLOCK,
-                    blockPos!!,
-                    enumFacing!!
-                )
-            )
         }
     }
     override val tag: String

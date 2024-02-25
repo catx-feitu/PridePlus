@@ -23,6 +23,10 @@ public class MixinS32PacketConfirmTransaction {
     @Shadow
     private boolean accepted;
 
+    /**
+     * @author
+     * @reason
+     */
     @Overwrite
     public void readPacketData(PacketBuffer buf) {
         Disabler disabler2 = (Disabler) Pride.moduleManager.getModule(Disabler.class);
