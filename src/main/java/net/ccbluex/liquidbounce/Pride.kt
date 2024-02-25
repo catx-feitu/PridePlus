@@ -41,6 +41,7 @@ import net.ccbluex.liquidbounce.utils.ClientUtils
 import net.ccbluex.liquidbounce.utils.InventoryUtils
 import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.minecraft.util.ResourceLocation
+import op.wawa.VideoBackground
 import op.wawa.manager.CombatManager
 import op.wawa.sound.Sound
 import op.wawa.utils.QQUtils
@@ -60,6 +61,9 @@ object Pride {
 
     var isStarting = false
 
+    var mainMenuPrep = false
+    var darkMode: Boolean = false
+
     // Managers
     lateinit var moduleManager: ModuleManager
     lateinit var commandManager: CommandManager
@@ -68,6 +72,7 @@ object Pride {
     lateinit var scriptManager: ScriptManager
     lateinit var combatManager: CombatManager
     lateinit var tipSoundManager: TipSoundManager
+    //lateinit var videoBackground: VideoBackground
     lateinit var userQQ: String
 
     // HUD & ClickGUI
@@ -166,6 +171,10 @@ object Pride {
         // Set HUD
         hud = createDefault()
         fileManager.loadConfig(fileManager.hudConfig)
+
+        // video
+        //videoBackground = VideoBackground()
+        //videoBackground.load()
 
         // Load generators
         GuiAltManager.loadGenerators()
