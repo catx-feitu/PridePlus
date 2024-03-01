@@ -2,17 +2,11 @@ package net.ccbluex.liquidbounce.features.module.modules.combat.antikbs.grim
 
 import net.ccbluex.liquidbounce.Pride
 import net.ccbluex.liquidbounce.event.*
-import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.combat.antikbs.AntiKBMode
-import net.ccbluex.liquidbounce.features.module.modules.movement.StrafeFix
-import net.ccbluex.liquidbounce.features.module.modules.world.Scaffold
 import net.ccbluex.liquidbounce.injection.implementations.IMixinTimer
-import net.ccbluex.liquidbounce.utils.MovementUtils
 import net.ccbluex.liquidbounce.utils.RaycastUtils
 import net.ccbluex.liquidbounce.utils.RotationUtils
-import net.ccbluex.liquidbounce.utils.extensions.getDistanceToEntityBox
 import net.ccbluex.liquidbounce.utils.timer.MSTimer
-import net.minecraft.block.material.Material
 import net.minecraft.entity.Entity
 import net.minecraft.network.play.client.*
 import net.minecraft.network.play.server.SPacketEntityVelocity
