@@ -6,120 +6,112 @@ import net.ccbluex.liquidbounce.features.module.modules.combat.KillAura
 import net.ccbluex.liquidbounce.features.module.modules.combat.antikbs.AntiKBMode
 import net.ccbluex.liquidbounce.features.module.modules.movement.StrafeFix
 import net.ccbluex.liquidbounce.features.module.modules.world.Scaffold
+import net.ccbluex.liquidbounce.injection.implementations.IMixinTimer
+import net.ccbluex.liquidbounce.utils.MovementUtils
+import net.ccbluex.liquidbounce.utils.RaycastUtils
+import net.ccbluex.liquidbounce.utils.RotationUtils
 import net.ccbluex.liquidbounce.utils.extensions.getDistanceToEntityBox
+import net.ccbluex.liquidbounce.utils.timer.MSTimer
 import net.minecraft.block.material.Material
+import net.minecraft.entity.Entity
 import net.minecraft.network.play.client.*
 import net.minecraft.network.play.server.SPacketEntityVelocity
+import net.minecraft.network.play.server.SPacketExplosion
+import net.minecraft.util.EnumHand
 
 class NoXZVelocity : AntiKBMode("NoXZ") {
     /**
      * VALUES
      */
-    private var attack = false
+    private var grimNoAntiKB = 0
+    private var cancel = false
+
+    private var velocityTimer = MSTimer()
     private var velocityInput = false
-    private var velocityed = false
-    private var jump = false
-    var sendsprint = false
-    private var sprint = false
-    private var sendc02 = false
-    private var packetx = 0
-    private var packetz = 0
-    private var safemotion = 0
-    private var jumped = 0
-    private var reallyyaw: Float = 0F
+    private var press = false
+    private var grimReduce = 0
 
-
-    override fun onEnable() {
-        reallyyaw = mc.player.rotationYaw
-    }
+    var x = 0.0
+    var y = -0.1
+    var z = 0.0
 
     override fun onDisable() {
-        attack = false
-        packetx = 0
-        packetz = 0
-        safemotion = 0
-        sendc02 = false
-        sprint = false
-        sendsprint = false
-        jump = false
-        velocityed = false
+        cancel = false
+        grimNoAntiKB = 0
         mc.player?.speedInAir = 0.02F
+        grimReduce = 0
+        velocityInput = false
+        (mc.timer as IMixinTimer).timerSpeed = 1f
+        press = false
     }
 
     override fun onUpdate(event: UpdateEvent) {
-        val sca = Pride.moduleManager[Scaffold::class.java] as Scaffold
-        val thePlayer = mc.player ?: return
-        if (thePlayer.isInWater || thePlayer.isInLava || thePlayer.isInWeb || !thePlayer.isInsideOfMaterial(Material.AIR))
+        if (mc.player.isInWater || mc.player.isInLava || mc.player.isInWeb)
+            return
+        if (mc.player == null)
             return
 
         if (velocityInput) {
-            if (attack) {
-                velocityInput = false
-                attack = false
-            } else {
-                //Bypass all ac
-                if (mc.player.hurtTime > 0){
-                    mc.player.motionX += -1.0E-7
-                    mc.player.motionY += -1.0E-7
-                    mc.player.motionZ += -1.0E-7
-                    mc.player.isAirBorne = true
-                }
-                velocityInput = false
-                attack = false
-            }
+            if (mc.player.hurtTime == 0) velocityInput = false
         }
-        if (velocityed){
-            if (mc.player!!.onGround && mc.player!!.hurtTime == 9) {
-                if (jumped > 2) {
-                    jumped = 0
-                } else {
-                    ++jumped
-                    if (mc.player.ticksExisted % 5 != 0) mc.gameSettings.keyBindJump.pressed = true
+    }
+
+    override fun onTick(event: TickEvent) {
+        if (velocityInput) {
+            val reach = 3.0
+            val currentRotation = RotationUtils.serverRotation!!
+
+            val raycastedEntity = RaycastUtils.raycastEntity(reach, currentRotation.yaw, currentRotation.pitch,
+                object : RaycastUtils.EntityFilter {
+                    override fun canRaycast(entity: Entity?): Boolean {
+                        return true
+                    }
+
+                })
+
+            if (raycastedEntity != null && raycastedEntity != mc.player) {
+                repeat(5) {
+                    Pride.eventManager.callEvent(AttackEvent(raycastedEntity))
+                    mc.connection!!.sendPacket(CPacketUseEntity(raycastedEntity))
+                    mc.player!!.swingArm(EnumHand.MAIN_HAND)
                 }
-            } else if (mc.player!!.hurtTime == 8) {
-                mc.gameSettings.keyBindJump.pressed = mc.gameSettings.keyBindJump.isKeyDown
                 velocityInput = false
             }
         }
 
-        if (mc.player.hurtTime == 0){
-            if(!sca.state) mc.gameSettings.keyBindJump.pressed = mc.gameSettings.keyBindJump.isKeyDown
-        }
     }
 
     override fun onPacket(event: PacketEvent) {
         val packet = event.packet
-        val killAura = Pride.moduleManager[KillAura::class.java] as KillAura
-        val strafeFix = Pride.moduleManager[StrafeFix::class.java] as StrafeFix
         if (packet is SPacketEntityVelocity) {
+            if (mc.player == null || (mc.world?.getEntityByID(packet.entityID) ?: return) != mc.player) return
+
+            velocityTimer.reset()
+
+            x = mc.player.posX
+            y = mc.player.posY
+            z = mc.player.posZ
+
             velocityInput = true
-            if (mc.player.onGround) mc.gameSettings.keyBindJump.pressed = true
-            if (killAura.state && killAura.currentTarget != null && mc.player.getDistanceToEntityBox(killAura.currentTarget!!) <= 3.01 && !strafeFix.state) {
+        }
+        if (packet is SPacketExplosion) {
+            // TODO: Support velocity for explosions
+            event.cancelEvent()
+        }
+    }
+    override fun onAttack(event: AttackEvent) {
+        if (velocityInput) {
+            if (!mc.player.isSprinting) {
+                val player = mc.player ?: return
+                if (player.isSprinting) mc.connection!!.sendPacket(CPacketEntityAction(player, CPacketEntityAction.Action.STOP_SPRINTING))
+                mc.connection!!.sendPacket(CPacketEntityAction(player, CPacketEntityAction.Action.START_SPRINTING))
 
-                // is sprinting
-                if (mc.player.movementInput.moveForward > 0.9f && mc.player.isSprinting && mc.player.serverSprintState) {
-                    repeat(5) {
-                        mc.connection!!.sendPacket(CPacketConfirmTransaction(100, 100, true))
-                        mc.connection!!.sendPacket(CPacketUseEntity(killAura.currentTarget!!))
-                        mc.connection!!.sendPacket(CPacketAnimation())
-                    }
-
-                    if (mc.player.collidedHorizontally && !mc.player.isOnLadder && !mc.player.isInWater && !mc.player.isInLava) return
-                    attack = true
-                } else {
-                    if (mc.player.movementInput.moveForward > 0.9f) {
-                        repeat(5) {
-                            mc.connection!!.sendPacket(CPacketConfirmTransaction(100, 100, true))
-                            mc.connection!!.networkManager.sendPacket(CPacketEntityAction(mc.player, CPacketEntityAction.Action.START_SPRINTING))
-                            mc.connection!!.sendPacket(CPacketUseEntity(killAura.currentTarget!!))
-                            mc.connection!!.sendPacket(CPacketAnimation())
-                        }
-
-                        if (mc.player.collidedHorizontally && !mc.player.isOnLadder && !mc.player.isInWater && !mc.player.isInLava) return
-                        attack = true
-                    }
-                }
+                player.isSprinting = true
+                player.serverSprintState = true
             }
+
+            mc.player.motionX *= 0.6
+            mc.player.motionZ *= 0.6
         }
     }
 }

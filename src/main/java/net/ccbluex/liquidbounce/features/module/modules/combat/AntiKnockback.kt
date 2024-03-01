@@ -43,7 +43,7 @@ object AntiKnockback : Module() {
             if (state) onEnable()
         }
     }
-    private val OnlyMove = BoolValue("OnlyMove", false)
+    private val OnlyMove = BoolValue("OnlyMove", true)
     val OnlyGround = BoolValue("OnlyGround", false)
     val horizontalValue = FloatValue("Horizontal", 0f, -2f, 2f).displayable { modeValue.equals("Simple") || modeValue.equals("Tick") }
     val verticalValue = FloatValue("Vertical", 0f, -2f, 2f).displayable { modeValue.equals("Simple") || modeValue.equals("Tick") }
