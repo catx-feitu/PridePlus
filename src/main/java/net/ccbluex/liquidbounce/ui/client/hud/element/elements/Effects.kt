@@ -5,6 +5,8 @@
  */
 package net.ccbluex.liquidbounce.ui.client.hud.element.elements
 
+import net.ccbluex.liquidbounce.Pride
+import net.ccbluex.liquidbounce.features.module.modules.render.CustomUI
 import net.ccbluex.liquidbounce.features.value.BoolValue
 import net.ccbluex.liquidbounce.features.value.FontValue
 import net.ccbluex.liquidbounce.ui.client.hud.element.Border
@@ -25,7 +27,6 @@ class Effects(x: Double = 2.0, y: Double = 10.0, scale: Float = 1F,
               side: Side = Side(Side.Horizontal.RIGHT, Side.Vertical.DOWN)) : Element(x, y, scale, side) {
 
     private val fontValue = FontValue("Font", Fonts.minecraftFont)
-    private val shadow = BoolValue("Shadow", true)
 
     /**
      * Draw element
@@ -61,7 +62,7 @@ class Effects(x: Double = 2.0, y: Double = 10.0, scale: Float = 1F,
             if (width < stringWidth)
                 width = stringWidth
 
-            fontRenderer.drawString(name, -stringWidth, y, potion.liquidColor, shadow.get())
+            fontRenderer.drawString(name, -stringWidth, y, potion.liquidColor, CustomUI.shadow.get())
             y -= fontRenderer.FONT_HEIGHT
         }
 
