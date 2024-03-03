@@ -43,9 +43,6 @@ class NameTags : Module() {
 
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
-        glPushAttrib(GL_ENABLE_BIT)
-        glPushMatrix()
-
         // Disable lightning and depth test
         glDisable(GL_LIGHTING)
         glDisable(GL_DEPTH_TEST)
@@ -67,9 +64,6 @@ class NameTags : Module() {
                         (entity.displayName ?: continue).unformattedText
             )
         }
-
-        glPopMatrix()
-        glPopAttrib()
 
         // Reset color
         glColor4f(1F, 1F, 1F, 1F)
